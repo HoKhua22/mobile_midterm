@@ -11,24 +11,83 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.khuakyapp.screens.RandomActivity
 import com.example.khuakyapp.ui.theme.KhuaKyAppTheme
+import kotlin.random.Random
+
+data class Food(
+  val id: Int,
+  val name: String,
+  val description: String,
+  @DrawableRes val imageRes: Int = 0
+)
+
+private val foodItems = listOf(
+  Food(
+    1,
+    "Grilled Lobster",
+    "This lobster is grilled with charcoal. It is served with different dipping sauces.",
+    R.drawable.food1
+  ),
+  Food(
+    2,
+    "Baked crabs",
+    "The crab dish is very delicious.",
+    R.drawable.food2
+  ),
+  Food(
+    3,
+    "Món 2",
+    "Grilled oysters have a greasy taste.",
+    R.drawable.food3
+  ),
+  Food(
+    4,
+    "Món 3",
+    "Grilled oysters have a greasy taste.",
+    R.drawable.food4
+  ),
+  Food(
+    5,
+    "Món 4",
+    "Grilled oysters have a greasy taste.",
+    R.drawable.food5
+  ),
+  Food(
+    6,
+    "Món 5",
+    "Grilled oysters have a greasy taste.",
+    R.drawable.food6
+  ),
+  Food(
+    7,
+    "Món Khưa làm",
+    "Grilled oysters have a greasy taste.",
+    R.drawable.fish
+  ),
+)
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,66 +125,9 @@ class MainActivity : ComponentActivity() {
   }
 }
 
-private val foodItems = listOf(
-  Food(
-    1,
-    "Grilled Lobster",
-    "This lobster is grilled with charcoal. It is served with different dipping sauces.",
-    R.drawable.food1
-  ),
-  Food(
-    2,
-    "Baked crabs",
-    "The crab dish is very delicious.",
-    R.drawable.food2
-  ),
-  Food(
-    3,
-    "Grilled oysters",
-    "Grilled oysters have a greasy taste.",
-    R.drawable.food3
-  ),
-  Food(
-    4,
-    "Grilled oysters",
-    "Grilled oysters have a greasy taste.",
-    R.drawable.food4
-  ),
-  Food(
-    5,
-    "Grilled oysters",
-    "Grilled oysters have a greasy taste.",
-    R.drawable.food5
-  ),
-  Food(
-    6,
-    "Grilled oysters",
-    "Grilled oysters have a greasy taste.",
-    R.drawable.food6
-  ),
-  Food(
-    7,
-    "Grilled oysters",
-    "Grilled oysters have a greasy taste.",
-    R.drawable.fish
-  ),
-)
-
 @Composable
 fun MainScreenContainer() {
   val context = LocalContext.current
-  Row(
-    modifier = Modifier
-      .padding(top = 50.dp)
-  ) {
-    FoodsList(
-      foods = foodItems,
-      modifier = Modifier.padding(
-        top = 16.dp,
-        bottom = 6.dp
-      )
-    )
-  }
   Row(
     modifier = Modifier.padding(start = 15.dp, top = 4.dp),
     verticalAlignment = Alignment.CenterVertically
@@ -143,14 +145,31 @@ fun MainScreenContainer() {
       text = { Text("Hôm nay bạn muốn ăn gì?") }
     )
   }
-}
+  Row(
+    modifier = Modifier
+      .padding(top = 50.dp)
+  ) {
+    FoodsList(
+      foods = foodItems,
+      modifier = Modifier.padding(
+        top = 16.dp,
+        bottom = 6.dp
+      )
+    )
+  }
+  Row(
+    modifier = Modifier.padding(top = 100.dp)
+  ) {
+    Column(
+      modifier = Modifier.fillMaxSize(),
+      verticalArrangement = Arrangement.Center,
+      horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+      RandomFood(food = foodItems)
+    }
+  }
 
-private data class Food(
-  val id: Int,
-  val name: String,
-  val description: String,
-  @DrawableRes val imageRes: Int = 0
-)
+}
 
 @Composable
 private fun FoodsList(
@@ -220,15 +239,75 @@ private fun Food(food: Food) {
   }
 }
 
-@Composable
-fun Greeting(name: String) {
-  Text(text = "App $name!")
+fun getRandomFood(
+  food: List<Food>
+): Food {
+  val endNumber = food.size
+  val numberRandom = Random.nextInt(endNumber)
+  return food[numberRandom]
 }
 
-@Preview(showBackground = true)
 @Composable
-fun DefaultPreview() {
-  KhuaKyAppTheme {
-    Greeting("Android")
+fun RandomFood(food: List<Food>) {
+  val foodRandom = remember {
+    mutableStateOf(Food(0, "", ""))
+  }
+  Column(
+    modifier = Modifier.fillMaxSize(),
+    verticalArrangement = Arrangement.Center,
+    horizontalAlignment = Alignment.CenterHorizontally
+  ) {
+
+    if (food.isNotEmpty()) {
+      if (foodRandom.value.name != "") {
+        ShowFoodRandom(food = foodRandom.value)
+      }
+      Button(
+        onClick = {
+          foodRandom.value = getRandomFood(food = food)
+        }, contentPadding = PaddingValues(
+          start = 20.dp,
+          top = 12.dp,
+          end = 20.dp,
+          bottom = 12.dp
+        )
+      ) {
+        Icon(
+          Icons.Filled.Favorite,
+          contentDescription = "randomfood",
+          modifier = Modifier.size(ButtonDefaults.IconSize)
+        )
+        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+        Text("Random các món ăn")
+      }
+    } else {
+      Text(
+        text = "Không có món này trong thực đơn",
+        style = TextStyle(fontSize = 16.sp)
+      )
+    }
   }
 }
+
+@Composable
+fun ShowFoodRandom(food: Food) {
+  Text(text = food.name)
+  Card(
+    modifier = Modifier
+      .fillMaxWidth()
+      .size(200.dp)
+      .padding(top = 50.dp),
+    shape = RoundedCornerShape(5.dp),
+    elevation = 2.dp
+  ) {
+    Box(modifier = Modifier.height(200.dp)) {
+      Image(
+        painter = painterResource(id = food.imageRes),
+        contentDescription = food.name,
+        contentScale = ContentScale.FillHeight,
+        modifier = Modifier.fillMaxSize()
+      )
+    }
+  }
+}
+
